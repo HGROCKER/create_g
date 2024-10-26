@@ -10,13 +10,24 @@ class main_game:
         self.time = pygame.time.Clock()
 game = main_game()
 
+class main_object:
+    def __init__(self,x,y,r):
+        self.x =x
+        self.y =y
+        self.color = (0,0,0)
+        self.radius =r
+m_obj= main_object(game.width*0.5,game.height*0.5,0.2*game.height)
+
 class object_c:
-    def __init__(self,x,y,w):
+    def __init__(self,x,y,w,s):
         self.w= w 
         self.x = x
         self.y = y
         self.color = (0,0,0)
-
+        self.speed = s
+    def move(self):
+        pass
+list_object = []
 view = pygame.display.set_mode((game.width,game.height))
 
 def pause(key):
@@ -44,4 +55,3 @@ while True:
                 print("pause")
     view.fill(game.color)
     pygame.display.update()
-                
