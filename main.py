@@ -18,6 +18,7 @@ class main_game:
         self.mouse = pygame.mouse.get_pos()
         self.diem = 0
         self.r_mouse =35
+        self.diem_h = 0
 game = main_game()
 
 class main_object:
@@ -49,6 +50,14 @@ class object_c:
 
 
         
+try:
+    with open("Highest_scores.txt","r") as file:
+        text=file.read()
+        text=text.split()
+        game.diem_h =int(text[2])
+except:
+    with open("Highest_scores.txt","w") as file:
+        file.write("Diem day 0")
 
 list_object = []
 view = pygame.display.set_mode((game.width,game.height))
@@ -69,28 +78,23 @@ def center_spon():
     return  (random.randint(0,game.width),game.height-10)
 
 def when_touch_m (obj):
-    global m_obj
+    global m_obj, game
     l_x = m_obj.x-obj.center[0]
     l_y = m_obj.y-obj.center[1]
     len = math.sqrt((l_x)**2+(l_y)**2)
     if len < obj.w + m_obj.radius:
         view.blit(t_lost,(100,100))
         pygame.display.update()
-        try:
-            with open("Highest_scores.txt","r") as file:
-                text=file.read()
-                text=text.split()
-                text=int(text[2])
-                if(game.diem>text):
-                    with open("Highest_scores.txt","w") as file2:
-                        file2.write("diem day {0}".format(game.diem))
-        except:
-            with open("Highest_scores.txt","w") as file:
-                file.write("diem day {0}".format(game.diem))
-        time.sleep(2)
+        if(game.diem>game.diem_h):
+            with open("Highest_scores.txt","w") as file2:
+                file2.write("diem day {0}".format(game.diem))
+                game.diem_h=game.diem
+                game.diem=0 
+        time.sleep(1)
         pygame.quit()
         sys.exit()
 
+        
 def when_touch_mouse (obj,where):
     global game
     l_x = game.mouse[0]-obj.center[0]
@@ -113,9 +117,11 @@ def pause(key):
         pygame.display.update()
         game.FPS.tick(20)
 
-t_diem = font.render("Diem {0}".format(game.diem),True, color.red)
+t_diem = font.render("Diem {0} - Highest {1}".format(game.diem,game.diem_h),True, color.red)
 l_touch = []
+l_list =0
 dk_de = True
+dk_re = False
 while True:
 
     game.play=pause(game.play)
@@ -137,27 +143,28 @@ while True:
             if get_k == ord(' '):
                 game.play = True
                 print("pause")
+            elif get_k == ord('x'):
+                pygame.quit()
+                sys.exit()
         elif get == pygame.MOUSEBUTTONDOWN:
             pass
         game.mouse = pygame.mouse.get_pos()
-    view.fill(game.color)
-    
+    view.fill(game.color)    
+    pygame.draw.circle(view,m_obj.color,(m_obj.x,m_obj.y),m_obj.radius)
+    pygame.draw.circle(view,color.black,(game.mouse[0],game.mouse[1]),game.r_mouse)
+    t_diem = font.render("Diem {0} - Highest {1}".format(game.diem,game.diem_h),True, color.red)
+    view.blit(t_diem,(0,0))
+
     l_list = len(list_object)
     l_touch = []
-
     for obj in range(l_list):
         pygame.draw.circle(view,list_object[obj].color,list_object[obj].center,list_object[obj].w)
         list_object[obj].move()
-        when_touch_m(list_object[obj])
         when_touch_mouse(list_object[obj],obj)
+        when_touch_m(list_object[obj])
     l_list = len(l_touch)
     for obj in range(l_list-1,-1,-1):
         list_object.pop(obj)
-    
-    pygame.draw.circle(view,m_obj.color,(m_obj.x,m_obj.y),m_obj.radius)
-    pygame.draw.circle(view,color.black,(game.mouse[0],game.mouse[1]),game.r_mouse)
-    t_diem = font.render("Diem {0}".format(game.diem),True, color.red)
-    view.blit(t_diem,(0,0))
-    print(len(list_object))
     game.FPS.tick(game.num_FPS)
     pygame.display.update()
+
