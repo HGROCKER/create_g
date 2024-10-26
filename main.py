@@ -13,7 +13,7 @@ class main_game:
         self.color = color.white
         self.play =False
         self.FPS = pygame.time.Clock()
-        self.num_FPS = 60
+        self.num_FPS = 70
         self.time_create_obj = 1000
 game = main_game()
 
@@ -102,6 +102,6 @@ while True:
     for obj in list_object:
         pygame.draw.circle(view,obj.color,obj.center,obj.w)
         obj.move()
-
+    print(len(list_object))
     game.FPS.tick(game.num_FPS)
     pygame.display.update()
