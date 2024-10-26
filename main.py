@@ -1,4 +1,4 @@
-import pygame,sys,random,math
+import pygame,sys,random,math,time
 pygame.init()
 
 class color:
@@ -16,6 +16,8 @@ class main_game:
         self.num_FPS = 70
         self.time_create_obj = 500
         self.mouse = pygame.mouse.get_pos()
+        self.diem = 0
+        self.r_mouse =35
 game = main_game()
 
 class main_object:
@@ -54,6 +56,7 @@ view = pygame.display.set_mode((game.width,game.height))
 
 font = pygame.font.Font('freesansbold.ttf', 32)
 t_pause = font.render("PAUSE",True,color.black)
+t_lost = font.render("YOU LOST",True, color.red)
 
 def center_spon():
     di =random.randint(1,4)
@@ -64,6 +67,28 @@ def center_spon():
     if di==3:
        return  (game.width-10,random.randint(0,game.height))
     return  (random.randint(0,game.width),game.height-10)
+
+def when_touch_m (obj):
+    global m_obj
+    l_x = m_obj.x-obj.center[0]
+    l_y = m_obj.y-obj.center[1]
+    len = math.sqrt((l_x)**2+(l_y)**2)
+    if len < obj.w + m_obj.radius:
+        view.blit(t_lost,(100,100))
+        pygame.display.update()
+        with open("Highest_scores.txt","w") as file:
+            file.write("diem day {0}".format(game.diem))
+        time.sleep(2)
+        pygame.quit()
+        sys.exit()
+
+def when_touch_mouse (obj):
+    global game
+    l_x = game.mouse[0]-obj.center[0]
+    l_y = game.mouse[1]-obj.center[1]
+    len = math.sqrt((l_x)**2+(l_y)**2)
+    if len < obj.w + game.r_mouse:
+        game.diem+=1
 
 def pause(key):
     while key:
@@ -109,8 +134,10 @@ while True:
     for obj in list_object:
         pygame.draw.circle(view,obj.color,obj.center,obj.w)
         obj.move()
+        when_touch_m(obj)
+        when_touch_mouse(obj)
     pygame.draw.circle(view,m_obj.color,(m_obj.x,m_obj.y),m_obj.radius)
-    pygame.draw.rect(view,color.black,(game.mouse[0]-25,game.mouse[1]-25,50,50))
+    pygame.draw.circle(view,color.black,(game.mouse[0],game.mouse[1]),game.r_mouse)
     print(len(list_object))
     game.FPS.tick(game.num_FPS)
     pygame.display.update()
