@@ -15,6 +15,7 @@ class main_game:
         self.FPS = pygame.time.Clock()
         self.num_FPS = 70
         self.time_create_obj = 500
+        self.mouse = pygame.mouse.get_pos()
 game = main_game()
 
 class main_object:
@@ -79,6 +80,7 @@ def pause(key):
 
 dk_de = True
 while True:
+
     game.play=pause(game.play)
 
     if pygame.time.get_ticks() % game.time_create_obj <50 and dk_de:
@@ -101,12 +103,14 @@ while True:
                 print("pause")
         elif get == pygame.MOUSEBUTTONDOWN:
             pass
+        game.mouse = pygame.mouse.get_pos()
     view.fill(game.color)
 
     for obj in list_object:
         pygame.draw.circle(view,obj.color,obj.center,obj.w)
         obj.move()
     pygame.draw.circle(view,m_obj.color,(m_obj.x,m_obj.y),m_obj.radius)
+    pygame.draw.rect(view,color.black,(game.mouse[0]-25,game.mouse[1]-25,50,50))
     print(len(list_object))
     game.FPS.tick(game.num_FPS)
     pygame.display.update()
