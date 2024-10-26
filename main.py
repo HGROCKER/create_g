@@ -77,7 +77,7 @@ def center_spon():
        return  (game.width-10,random.randint(0,game.height))
     return  (random.randint(0,game.width),game.height-10)
 
-def when_touch_m (obj):
+def when_touch_m (obj,where):
     global m_obj, game
     l_x = m_obj.x-obj.center[0]
     l_y = m_obj.y-obj.center[1]
@@ -89,10 +89,11 @@ def when_touch_m (obj):
             with open("Highest_scores.txt","w") as file2:
                 file2.write("diem day {0}".format(game.diem))
                 game.diem_h=game.diem
-                game.diem=0 
+        game.diem=0
+        l_touch.append(where)
         time.sleep(1)
-        pygame.quit()
-        sys.exit()
+        # pygame.quit()
+        # sys.exit()
 
         
 def when_touch_mouse (obj,where):
@@ -161,7 +162,7 @@ while True:
         pygame.draw.circle(view,list_object[obj].color,list_object[obj].center,list_object[obj].w)
         list_object[obj].move()
         when_touch_mouse(list_object[obj],obj)
-        when_touch_m(list_object[obj])
+        when_touch_m(list_object[obj],obj)
     l_list = len(l_touch)
     for obj in range(l_list-1,-1,-1):
         list_object.pop(obj)
