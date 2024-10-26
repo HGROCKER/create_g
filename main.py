@@ -1,4 +1,4 @@
-import pygame,sys,random,time
+import pygame,sys,random,time,math
 pygame.init()
 
 class color:
@@ -12,7 +12,9 @@ class main_game:
         self.height =800
         self.color = color.white
         self.play =False
-        self.time = pygame.time.Clock()
+        self.FPS = pygame.time.Clock()
+        self.num_FPS = 60
+        self.time_create_obj = 1000
 game = main_game()
 
 class main_object:
@@ -25,28 +27,35 @@ class main_object:
 m_obj= main_object(game.width*0.5,game.height*0.5,0.2*game.height,color.black)
 
 class object_c:
-    def __init__(self,x,y,w,s,di):
+    def __init__(self,center,w,s,di):
         self.w= w 
-        self.x = x
-        self.y = y
+        self.center= center
         self.color = color.black
         self.speed = s
-        self.direction = di
+        self.direction = (s,(di[1]-center[1])/(di[0]-center[0])*s)
     def move(self):
-        pass
-list_object = []
-list_object.append(object_c(random.randint(0,game.width), random.randint(0,game.height), random.randint(game.width*0.1,game.width*0.2),0.1*game.width, (m_obj.x,m_obj.y)))
+        self.x +=self.direction[0]
+        self.y +=self.direction[1]
 
+list_object = []
 view = pygame.display.set_mode((game.width,game.height))
 
 
 font = pygame.font.Font('freesansbold.ttf', 32)
 t_pause = font.render("PAUSE",True,color.black)
- 
+
+def center_spon():
+    di =random.randint(1,4)
+    if di==1:
+        return (10,random.randint(0,game.height))
+    if di==2:
+        return (random.randint(0,game.width),10)
+    if di==3:
+       return  (game.width-10,random.randint(0,game.height))
+    return  (random.randint(0,game.width),game.height-10)
+
 def pause(key):
     while key:
-        list_object.append(object_c(random.randint(0,game.width), random.randint(0,game.height), random.randint(game.width*0.1,game.width*0.2),0.1*game.width, (m_obj.x,m_obj.y)))
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT :
                 pygame.quit()
@@ -56,11 +65,16 @@ def pause(key):
                 return False
         view.blit(t_pause,(0,0))
         pygame.display.update()
-        game.time.tick(20)
-
+        game.FPS.tick(20)
+dk_de = True
 while True:
     game.play=pause(game.play)
-    # list_object.append(object_c(random.randint(0,game.width), random.randint(0,game.height), random.randint(game.width*0.1,game.width*0.2),0.1*game.width, (m_obj.x,m_obj.y)))
+
+    if pygame.time.get_ticks() % game.time_create_obj <70 and dk_de:
+        list_object.append(object_c(center_spon(), random.randint(game.width*0.1,game.width*0.2),0.1*game.width, (m_obj.x,m_obj.y)))
+        dk_de = False
+    elif pygame.time.get_ticks() % game.time_create_obj >70 and dk_de==False:
+        dk_de=True
 
     for event in pygame.event.get():
         get = event.type
@@ -74,6 +88,9 @@ while True:
                 game.play = True
                 print("pause")
     view.fill(game.color)
-    # for obj in list_object:
-    #     view.blit(pygame.draw.circle(obj.))
+
+    for obj in list_object:
+        pygame.draw.circle(view,obj.color,obj.center,obj.w)
+
+    game.FPS.tick(game.num_FPS)
     pygame.display.update()
