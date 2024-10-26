@@ -76,19 +76,29 @@ def when_touch_m (obj):
     if len < obj.w + m_obj.radius:
         view.blit(t_lost,(100,100))
         pygame.display.update()
-        with open("Highest_scores.txt","w") as file:
-            file.write("diem day {0}".format(game.diem))
+        try:
+            with open("Highest_scores.txt","r") as file:
+                text=file.read()
+                text=text.split()
+                text=int(text[2])
+                if(game.diem>text):
+                    with open("Highest_scores.txt","w") as file2:
+                        file2.write("diem day {0}".format(game.diem))
+        except:
+            with open("Highest_scores.txt","w") as file:
+                file.write("diem day {0}".format(game.diem))
         time.sleep(2)
         pygame.quit()
         sys.exit()
 
-def when_touch_mouse (obj):
+def when_touch_mouse (obj,where):
     global game
     l_x = game.mouse[0]-obj.center[0]
     l_y = game.mouse[1]-obj.center[1]
     len = math.sqrt((l_x)**2+(l_y)**2)
     if len < obj.w + game.r_mouse:
         game.diem+=1
+        l_touch.append(where)
 
 def pause(key):
     while key:
@@ -103,11 +113,12 @@ def pause(key):
         pygame.display.update()
         game.FPS.tick(20)
 
+t_diem = font.render("Diem {0}".format(game.diem),True, color.red)
+l_touch = []
 dk_de = True
 while True:
 
     game.play=pause(game.play)
-
     if pygame.time.get_ticks() % game.time_create_obj <50 and dk_de:
         list_object.append( object_c(center_spon(), random.randint(game.width*0.05,game.width*0.07), 0.01*game.width , (m_obj.x,m_obj.y)) )
         game.time_create_obj = random.randint(200,5000)
@@ -130,14 +141,23 @@ while True:
             pass
         game.mouse = pygame.mouse.get_pos()
     view.fill(game.color)
+    
+    l_list = len(list_object)
+    l_touch = []
 
-    for obj in list_object:
-        pygame.draw.circle(view,obj.color,obj.center,obj.w)
-        obj.move()
-        when_touch_m(obj)
-        when_touch_mouse(obj)
+    for obj in range(l_list):
+        pygame.draw.circle(view,list_object[obj].color,list_object[obj].center,list_object[obj].w)
+        list_object[obj].move()
+        when_touch_m(list_object[obj])
+        when_touch_mouse(list_object[obj],obj)
+    l_list = len(l_touch)
+    for obj in range(l_list-1,-1,-1):
+        list_object.pop(obj)
+    
     pygame.draw.circle(view,m_obj.color,(m_obj.x,m_obj.y),m_obj.radius)
     pygame.draw.circle(view,color.black,(game.mouse[0],game.mouse[1]),game.r_mouse)
+    t_diem = font.render("Diem {0}".format(game.diem),True, color.red)
+    view.blit(t_diem,(0,0))
     print(len(list_object))
     game.FPS.tick(game.num_FPS)
     pygame.display.update()
