@@ -34,8 +34,9 @@ class object_c:
         self.speed = s
         self.direction = (s,(di[1]-center[1])/(di[0]-center[0])*s)
     def move(self):
-        self.x +=self.direction[0]
-        self.y +=self.direction[1]
+        self.center=(self.center[0] +self.direction[0],self.center[1] +self.direction[1])
+        
+        
 
 list_object = []
 view = pygame.display.set_mode((game.width,game.height))
@@ -66,12 +67,13 @@ def pause(key):
         view.blit(t_pause,(0,0))
         pygame.display.update()
         game.FPS.tick(20)
+
 dk_de = True
 while True:
     game.play=pause(game.play)
 
     if pygame.time.get_ticks() % game.time_create_obj <70 and dk_de:
-        list_object.append(object_c(center_spon(), random.randint(game.width*0.1,game.width*0.2),0.1*game.width, (m_obj.x,m_obj.y)))
+        list_object.append(object_c(center_spon(), random.randint(game.width*0.1,game.width*0.2),0.01*game.width, (m_obj.x,m_obj.y)))
         dk_de = False
     elif pygame.time.get_ticks() % game.time_create_obj >70 and dk_de==False:
         dk_de=True
@@ -91,6 +93,7 @@ while True:
 
     for obj in list_object:
         pygame.draw.circle(view,obj.color,obj.center,obj.w)
+        obj.move()
 
     game.FPS.tick(game.num_FPS)
     pygame.display.update()
