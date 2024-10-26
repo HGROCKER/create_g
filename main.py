@@ -32,10 +32,18 @@ class object_c:
         self.center= center
         self.color = color.black
         self.speed = s
-        self.direction = (s,(di[1]-center[1])/(di[0]-center[0])*s)
-    def move(self):
+
+        l_x = di[0]-center[0]
+        l_y = di[1]-center[1]
+        len = math.sqrt((l_x)**2+(l_y)**2)/s
+        l_x /= len
+        l_y /= len
+        self.direction = (l_x,l_y)
+    def move(self):        
         self.center=(self.center[0] +self.direction[0],self.center[1] +self.direction[1])
-        
+
+
+
         
 
 list_object = []
