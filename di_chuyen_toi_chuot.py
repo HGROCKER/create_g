@@ -10,9 +10,9 @@ class game_main:
         self.mouse = (0,0)
         self.st_obj = 0
         self.time = pygame.time.get_ticks()
-        self.time_spon = 1000
+        self.time_spon = 10
         self.FPS = pygame.time.Clock()
-        self.num_FPS = 60
+        self.num_FPS = 120
 game = game_main() 
 
 def center_spon():
