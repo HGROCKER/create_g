@@ -1,68 +1,88 @@
 import pygame,sys,random,math,time
 pygame.init()
 
+#bộ màu
 class color:
     red =(255,0,0)
     black = (0,0,0)
     white= (255,255,255)
 
+#thuộc tính game
 class main_game:
     def __init__(self):
-        self.width = 500
-        self.height =800
-        self.color = color.white
-        self.play =False
-        self.FPS = pygame.time.Clock()
-        self.num_FPS = 70
-        self.time_create_obj = 500
-        self.mouse = pygame.mouse.get_pos()
-        self.diem = 0
-        self.r_mouse =35
-        self.diem_h = 0
-game = main_game()
+        #thuộc tính cửa sổ mở
+        self.width = 500 #chiều rộng
+        self.height =800 #chiều dài
+        self.color = color.white #màu nền
+        self.name_game = "Game nao khong biet" #tên game
 
+        #thuộc tính game
+        self.play =False #tình trạng đang chơi hay tạm dừng
+        self.num_FPS = 70 #FPS game khi chơi
+        self.num_FPS_pause = 20 #FPS game khi tamj dừng
+        self.time_create_obj = 500 # thời gian lúc đầu để tạo 1 obj
+        self.r_mouse =35 # bán kính lại bỏ quanh chuột
+
+        #khởi tạo kiểm soát trò chơi
+        self.FPS = pygame.time.Clock() #khởi tạo bộ đếm time
+        self.mouse = pygame.mouse.get_pos() #trả về vị trí chuột lúc đầu
+
+        #quản lí điểm
+        self.diem = 0 # điểm mặc định
+        self.diem_h = 0 # khởi tạo điểm cao nhất lúc đầu
+        self.dt_diem = 1 #độ tăng điêmt
+game = main_game() #khởi tạo đối tượng thuộc tính game
+
+#thuộc tính đối tượng chính (bảo vệ)
 class main_object:
-    def __init__(self,x,y,r,c):
-        self.x =x
+    def __init__(self,x,y,r,c): #bộ dữ liệu nhập gồm tọa độ x,y bán kính, màu sắc
+        self.x =x 
         self.y =y
         self.color = c
         self.radius =r
+m_obj= main_object(game.width*0.5,game.height*0.5,0.1*game.width,color.red) #khởi tạo
 
-m_obj= main_object(game.width*0.5,game.height*0.5,0.1*game.width,color.red)
-
+#thuộc tính địch 
 class object_c:
-    def __init__(self,center,w,s,di):
+    def __init__(self,center,w,s,di):# vị trí, bán kính, tốc độ, tâm hướng di chuyển tới
         self.w= w 
         self.center= center
-        self.color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))#color.black
+        self.color = (random.randint(0,255),random.randint(0,255),random.randint(0,255)) #bộ ngầu nhiên màu sắc
         self.speed = s
 
-
+        #hàm xác định độ dịch chuyển trục x,y {di..[0],di..[1]}
+        #xác định vector hướng
         l_x = di[0]-center[0]
         l_y = di[1]-center[1]
+        #xác định tỉ số của tốc độ với khoảng cách từ đó lấy tỉ lệ các hướng x,y tương ứng 
+        # ví dụ: có vector là (x0,y0) thì kcach là a=sqrt(x0**2+y0**2), với vận tốc bằng v 
+        #        thì ta có tỉ số độ dài dchuyen sẽ bằng v/a, áp dụng tam giác đồng dạng thì ta xác định được độ dịch chuyển x,y
         len = math.sqrt((l_x)**2+(l_y)**2)/s
         l_x /= len
         l_y /= len
-        self.direction = (l_x,l_y)
 
+        #thiết lập vector dịch chuyển 2D
+        self.di= (l_x,l_y)
+
+    #dịch chuyển theo vector dchuyen
     def move(self):        
-        self.center=(self.center[0] +self.direction[0],self.center[1] +self.direction[1])
+        self.center=(self.center[0] +self.di[0],self.center[1] +self.di[1])#cộng vector
 
-
-        
-try:
-    with open("Highest_scores.txt","r") as file:
-        text=file.read()
+#khởi tạo biến điểm cao nhất từng đạt bằng cách đọc file
+try:#chạy trong này
+    with open("Highest_scores.txt","r") as file: #lấy open file gán vào biến file để thao tác
+        text=file.read() #với cấu trúc:"{a} {b} {x}" với x là số điểm cần tìm
         text=text.split()
         game.diem_h =int(text[2])
-except:
-    with open("Highest_scores.txt","w") as file:
+
+except:#nếu bị lỗi thì chạy trong này
+    #khởi tạo file text lưu điểm cao nhất
+    with open("Highest_scores.txt","w") as file: #lấy open file gán vào biến file để thao tác
         file.write("Diem day 0")
 
 list_object = []
 view = pygame.display.set_mode((game.width,game.height))
-
-
+pygame.display.set_caption(game.name_game)
 font = pygame.font.Font('freesansbold.ttf', 32)
 t_pause = font.render("PAUSE",True,color.black)
 t_lost = font.render("YOU LOST",True, color.red)
@@ -90,20 +110,18 @@ def when_touch_m (obj,where):
                 file2.write("diem day {0}".format(game.diem))
                 game.diem_h=game.diem
         game.diem=0
-        l_touch.append(where)
-        time.sleep(1)
-        # pygame.quit()
-        # sys.exit()
+        time.sleep(2)
+        return True
 
-        
+
 def when_touch_mouse (obj,where):
-    global game
     l_x = game.mouse[0]-obj.center[0]
     l_y = game.mouse[1]-obj.center[1]
     len = math.sqrt((l_x)**2+(l_y)**2)
     if len < obj.w + game.r_mouse:
-        game.diem+=1
-        l_touch.append(where)
+        game.diem+=game.dt_diem
+        list_object.remove(obj)
+        return True
 
 def pause(key):
     while key:
@@ -116,11 +134,9 @@ def pause(key):
                 return False
         view.blit(t_pause,(0,0))
         pygame.display.update()
-        game.FPS.tick(20)
+        game.FPS.tick(game.num_FPS_pause)
 
 t_diem = font.render("Diem {0} - Highest {1}".format(game.diem,game.diem_h),True, color.red)
-l_touch = []
-l_list =0
 dk_de = True
 dk_re = False
 while True:
@@ -128,11 +144,10 @@ while True:
     game.play=pause(game.play)
     if pygame.time.get_ticks() % game.time_create_obj <50 and dk_de:
         list_object.append( object_c(center_spon(), random.randint(game.width*0.05,game.width*0.07), 0.01*game.width , (m_obj.x,m_obj.y)) )
-        game.time_create_obj = random.randint(200,5000)
+        game.time_create_obj = random.randint(200,random.randint(1500,3000))
         dk_de = False
     elif pygame.time.get_ticks() % game.time_create_obj >50 and dk_de==False:
         dk_de=True
-
     for event in pygame.event.get():
         get = event.type
         if get == pygame.QUIT :
@@ -150,22 +165,20 @@ while True:
         elif get == pygame.MOUSEBUTTONDOWN:
             pass
         game.mouse = pygame.mouse.get_pos()
+    
     view.fill(game.color)    
     pygame.draw.circle(view,m_obj.color,(m_obj.x,m_obj.y),m_obj.radius)
     pygame.draw.circle(view,color.black,(game.mouse[0],game.mouse[1]),game.r_mouse)
     t_diem = font.render("Diem {0} - Highest {1}".format(game.diem,game.diem_h),True, color.red)
-    view.blit(t_diem,(0,0))
 
-    l_list = len(list_object)
-    l_touch = []
-    for obj in range(l_list):
+    view.blit(t_diem,(0,0))
+    obj = len(list_object)
+    while obj>0:
+        obj-=1
         pygame.draw.circle(view,list_object[obj].color,list_object[obj].center,list_object[obj].w)
         list_object[obj].move()
-        when_touch_mouse(list_object[obj],obj)
-        when_touch_m(list_object[obj],obj)
-    l_list = len(l_touch)
-    for obj in range(l_list-1,-1,-1):
-        list_object.pop(obj)
+        if when_touch_mouse(list_object[obj],obj)!=True:
+            if when_touch_m(list_object[obj],obj):
+                list_object = []
     game.FPS.tick(game.num_FPS)
     pygame.display.update()
-
