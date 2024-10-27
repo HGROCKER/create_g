@@ -1,4 +1,5 @@
-import pygame,sys,random,math,time
+#khời tạo modun phục vụ
+import pygame,sys,random,math
 pygame.init()
 
 #bộ màu
@@ -21,6 +22,7 @@ class main_game:
         self.num_FPS = 70 #FPS game khi chơi
         self.num_FPS_pause = 20 #FPS game khi tamj dừng
         self.time_create_obj = 500 # thời gian lúc đầu để tạo 1 obj
+        self.time_delay_lost = 1000 # thời gian tạm dừng khi thua
         self.r_mouse =35 # bán kính lại bỏ quanh chuột
 
         #khởi tạo kiểm soát trò chơi
@@ -80,13 +82,18 @@ except:#nếu bị lỗi thì chạy trong này
     with open("Highest_scores.txt","w") as file: #lấy open file gán vào biến file để thao tác
         file.write("Diem day 0")
 
-list_object = []
-view = pygame.display.set_mode((game.width,game.height))
-pygame.display.set_caption(game.name_game)
-font = pygame.font.Font('freesansbold.ttf', 32)
-t_pause = font.render("PAUSE",True,color.black)
-t_lost = font.render("YOU LOST",True, color.red)
+#khởi tạo bộ dữ liệu game
+list_object = [] #các đối tượng địch
+view = pygame.display.set_mode((game.width,game.height)) #màn hình
+pygame.display.set_caption(game.name_game) #tên game
+font = pygame.font.Font('freesansbold.ttf', 32) #font chữ
+t_pause = font.render("PAUSE",True,color.black) #chữ khi pause
+t_lost = font.render("YOU LOST",True, color.red) #chữ khi lost
+t_diem = font.render("Diem {0} - Highest {1}".format(game.diem,game.diem_h),True, color.red)
+dk_de = True
+dk_re = False
 
+#tạo vị trí ngẫu nhiên ở các viền
 def center_spon():
     di =random.randint(1,4)
     if di==1:
@@ -97,32 +104,43 @@ def center_spon():
        return  (game.width-10,random.randint(0,game.height))
     return  (random.randint(0,game.width),game.height-10)
 
-def when_touch_m (obj,where):
-    global m_obj, game
+#xác định va chạm giữa cần bảo vệ và địch
+def when_touch_m (obj):
+    #xác định khoảng cách
     l_x = m_obj.x-obj.center[0]
     l_y = m_obj.y-obj.center[1]
     len = math.sqrt((l_x)**2+(l_y)**2)
+
+    #điều kiện va chạm và thao tác
     if len < obj.w + m_obj.radius:
+        # in chữ lost
         view.blit(t_lost,(100,100))
+        #update chữ lost lên hình
         pygame.display.update()
+        #xác định điểm cao nhất
         if(game.diem>game.diem_h):
             with open("Highest_scores.txt","w") as file2:
                 file2.write("diem day {0}".format(game.diem))
                 game.diem_h=game.diem
+        #reset điểm và trả lại giá trị True để thực hiện tác vụ sau nó
         game.diem=0
-        time.sleep(2)
+        pygame.time.delay(game.time_delay_lost)
         return True
 
 
-def when_touch_mouse (obj,where):
+def when_touch_mouse (obj):
+    #xd kcach
     l_x = game.mouse[0]-obj.center[0]
     l_y = game.mouse[1]-obj.center[1]
     len = math.sqrt((l_x)**2+(l_y)**2)
+
+    #xd va cham và xóa đối tượng đó {để hiểu rõ hơn có thể tìm hiêu về phạm vi biến và  cách lấy dữ liệu của các function}
     if len < obj.w + game.r_mouse:
         game.diem+=game.dt_diem
         list_object.remove(obj)
         return True
 
+#hoạt họa khi pause
 def pause(key):
     while key:
         for event in pygame.event.get():
@@ -136,18 +154,21 @@ def pause(key):
         pygame.display.update()
         game.FPS.tick(game.num_FPS_pause)
 
-t_diem = font.render("Diem {0} - Highest {1}".format(game.diem,game.diem_h),True, color.red)
-dk_de = True
-dk_re = False
 while True:
-
     game.play=pause(game.play)
+    #xd khoảng time spon địch
+    #vì time vẫn là giá trị tương đối nên không thể đặt điều kiện tuyệt đối
+    #việc này có thể thực hiện bằng cách xác định khoảng time giữa 2 lần spon bằng cách xác định time ở 2 thời điểm đó để spon
+    #ví dụ khi kcach time >1000 thì spon và set time hiện tại làm mốc
+    #còn nếu hỏi vid sao tui không dùng cách này thì do mình thích tìm hiểu cách mới hơn
     if pygame.time.get_ticks() % game.time_create_obj <50 and dk_de:
         list_object.append( object_c(center_spon(), random.randint(game.width*0.05,game.width*0.07), 0.01*game.width , (m_obj.x,m_obj.y)) )
         game.time_create_obj = random.randint(200,random.randint(1500,3000))
         dk_de = False
     elif pygame.time.get_ticks() % game.time_create_obj >50 and dk_de==False:
         dk_de=True
+
+    #chọ này đơn giản khỏi gthich
     for event in pygame.event.get():
         get = event.type
         if get == pygame.QUIT :
@@ -164,21 +185,26 @@ while True:
                 sys.exit()
         elif get == pygame.MOUSEBUTTONDOWN:
             pass
+
+        # lấy tọa độ chuột
         game.mouse = pygame.mouse.get_pos()
     
+    #khởi tạo các đối tượng để in
     view.fill(game.color)    
     pygame.draw.circle(view,m_obj.color,(m_obj.x,m_obj.y),m_obj.radius)
     pygame.draw.circle(view,color.black,(game.mouse[0],game.mouse[1]),game.r_mouse)
     t_diem = font.render("Diem {0} - Highest {1}".format(game.diem,game.diem_h),True, color.red)
-
     view.blit(t_diem,(0,0))
+    #xử lý sự tương tác và tồn tại của các đối tượng
     obj = len(list_object)
     while obj>0:
         obj-=1
         pygame.draw.circle(view,list_object[obj].color,list_object[obj].center,list_object[obj].w)
         list_object[obj].move()
-        if when_touch_mouse(list_object[obj],obj)!=True:
-            if when_touch_m(list_object[obj],obj):
+        if when_touch_mouse(list_object[obj])!=True:
+            if when_touch_m(list_object[obj]):
                 list_object = []
+    #lim time in 1s (ý là sẽ sấp xỉ đâu đó thôi)
     game.FPS.tick(game.num_FPS)
+    #in hết lên màn hình
     pygame.display.update()
