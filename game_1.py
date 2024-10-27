@@ -128,7 +128,7 @@ def when_touch_m (obj):
         return True
 
 
-def when_touch_mouse (obj):
+def when_touch_mouse (obj,where):
     #xd kcach
     l_x = game.mouse[0]-obj.center[0]
     l_y = game.mouse[1]-obj.center[1]
@@ -137,7 +137,7 @@ def when_touch_mouse (obj):
     #xd va cham và xóa đối tượng đó {để hiểu rõ hơn có thể tìm hiêu về phạm vi biến và  cách lấy dữ liệu của các function}
     if len < obj.w + game.r_mouse:
         game.diem+=game.dt_diem
-        list_object.remove(obj)
+        list_object.pop(where)
         return True
 
 #hoạt họa khi pause
@@ -180,9 +180,6 @@ while True:
             if get_k == ord(' '):
                 game.play = True
                 print("pause")
-            elif get_k == ord('x'):
-                pygame.quit()
-                sys.exit()
         elif get == pygame.MOUSEBUTTONDOWN:
             pass
 
@@ -198,11 +195,20 @@ while True:
     obj = len(list_object)
     while obj>0:
         obj-=1
-        pygame.draw.circle(view,list_object[obj].color,list_object[obj].center,list_object[obj].w)
-        list_object[obj].move()
-        if when_touch_mouse(list_object[obj])!=True:
-            if when_touch_m(list_object[obj]):
-                list_object = []
+        try:
+            ten =font.render(str(obj),True,color.black)
+            pygame.draw.circle(view,list_object[obj].color,list_object[obj].center,list_object[obj].w)
+            list_object[obj].move()
+            view.blit(ten,list_object[obj].center)
+            if when_touch_mouse(list_object[obj],obj)!=True:
+                if when_touch_m(list_object[obj]):
+                    list_object = []
+        except ZeroDivisionError as e:
+            print("Lỗi chia cho 0:", str(e))
+        except TypeError as e:
+            print("Lỗi kiểu dữ liệu:", str(e))
+        except Exception as e:  # Bắt tất cả các lỗi khác
+            print("Lỗi không xác định:", str(e))
     #lim time in 1s (ý là sẽ sấp xỉ đâu đó thôi)
     game.FPS.tick(game.num_FPS)
     #in hết lên màn hình
