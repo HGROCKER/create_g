@@ -167,7 +167,7 @@ while True:
         dk_de = False
     elif pygame.time.get_ticks() % game.time_create_obj >50 and dk_de==False:
         dk_de=True
-
+    game.mouse = pygame.mouse.get_pos()
     #chọ này đơn giản khỏi gthich
     for event in pygame.event.get():
         get = event.type
@@ -187,7 +187,6 @@ while True:
             pass
 
         # lấy tọa độ chuột
-        game.mouse = pygame.mouse.get_pos()
     
     #khởi tạo các đối tượng để in
     view.fill(game.color)    
