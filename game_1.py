@@ -23,6 +23,7 @@ class main_game:
         self.num_FPS_pause = 20 #FPS game khi tamj dừng
         self.time_create_obj = 500 # thời gian lúc đầu để tạo 1 obj
         self.time_delay_lost = 1000 # thời gian tạm dừng khi thua
+        self.time = pygame.time.get_ticks()
         self.r_mouse =35 # bán kính lại bỏ quanh chuột
 
         #khởi tạo kiểm soát trò chơi
@@ -33,6 +34,7 @@ class main_game:
         self.diem = 0 # điểm mặc định
         self.diem_h = 0 # khởi tạo điểm cao nhất lúc đầu
         self.dt_diem = 1 #độ tăng điêmt
+        
 game = main_game() #khởi tạo đối tượng thuộc tính game
 
 #thuộc tính đối tượng chính (bảo vệ)
@@ -90,7 +92,6 @@ font = pygame.font.Font('freesansbold.ttf', 32) #font chữ
 t_pause = font.render("PAUSE",True,color.black) #chữ khi pause
 t_lost = font.render("YOU LOST",True, color.red) #chữ khi lost
 t_diem = font.render("Diem {0} - Highest {1}".format(game.diem,game.diem_h),True, color.red)
-dk_de = True
 dk_re = False
 
 #tạo vị trí ngẫu nhiên ở các viền
@@ -148,6 +149,7 @@ def pause(key):
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
+                game.play=False
                 print("continue")
                 return False
         view.blit(t_pause,(0,0))
@@ -161,30 +163,21 @@ while True:
     #việc này có thể thực hiện bằng cách xác định khoảng time giữa 2 lần spon bằng cách xác định time ở 2 thời điểm đó để spon
     #ví dụ khi kcach time >1000 thì spon và set time hiện tại làm mốc
     #còn nếu hỏi vid sao tui không dùng cách này thì do mình thích tìm hiểu cách mới hơn
-    if pygame.time.get_ticks() % game.time_create_obj <50 and dk_de:
+    if pygame.time.get_ticks() -game.time > game.time_create_obj :
         list_object.append( object_c(center_spon(), random.randint(game.width*0.05,game.width*0.07), 0.01*game.width , (m_obj.x,m_obj.y)) )
-        game.time_create_obj = random.randint(200,random.randint(1500,3000))
-        dk_de = False
-    elif pygame.time.get_ticks() % game.time_create_obj >50 and dk_de==False:
-        dk_de=True
+        game.time_create_obj = random.randint(100,random.randint(1000,3000))
+        game.time = pygame.time.get_ticks()
+    # lấy tọa độ chuột
     game.mouse = pygame.mouse.get_pos()
     #chọ này đơn giản khỏi gthich
     for event in pygame.event.get():
-        get = event.type
-        if get == pygame.QUIT :
+        if event.type == pygame.QUIT :
             pygame.quit()
             sys.exit()
-        elif get == pygame.KEYDOWN:
-            game.play=False
-            get_k = event.key
-            if get_k == ord(' '):
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
                 game.play = True
-                print("pause")
-        elif get == pygame.MOUSEBUTTONDOWN:
-            pass
-
-        # lấy tọa độ chuột
-    
+                print("pause") 
     #khởi tạo các đối tượng để in
     view.fill(game.color)    
     pygame.draw.circle(view,m_obj.color,(m_obj.x,m_obj.y),m_obj.radius)
@@ -195,20 +188,14 @@ while True:
     obj = len(list_object)
     while obj>0:
         obj-=1
-        try:
-            ten =font.render(str(obj),True,color.black)
-            pygame.draw.circle(view,list_object[obj].color,list_object[obj].center,list_object[obj].w)
-            list_object[obj].move()
-            view.blit(ten,list_object[obj].center)
-            if when_touch_mouse(list_object[obj],obj)!=True:
-                if when_touch_m(list_object[obj]):
-                    list_object = []
-        except ZeroDivisionError as e:
-            print("Lỗi chia cho 0:", str(e))
-        except TypeError as e:
-            print("Lỗi kiểu dữ liệu:", str(e))
-        except Exception as e:  # Bắt tất cả các lỗi khác
-            print("Lỗi không xác định:", str(e))
+        ten =font.render(str(obj),True,color.black)
+        pygame.draw.circle(view,list_object[obj].color,list_object[obj].center,list_object[obj].w)
+        list_object[obj].move()
+        view.blit(ten,list_object[obj].center)
+        if when_touch_m(list_object[obj]):
+            list_object.clear()
+            break
+        when_touch_mouse(list_object[obj],obj)
     #lim time in 1s (ý là sẽ sấp xỉ đâu đó thôi)
     game.FPS.tick(game.num_FPS)
     #in hết lên màn hình
