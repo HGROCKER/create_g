@@ -25,7 +25,6 @@ class main_game:
         self.time_create_obj = 500 # thời gian lúc đầu để tạo 1 obj
         self.time_delay_lost = 1000 # thời gian tạm dừng khi thua
         self.time = pygame.time.get_ticks()
-        self.r_mouse =35 # bán kính lại bỏ quanh chuột
         self.delobj =0
 
         #khởi tạo kiểm soát trò chơi
@@ -50,11 +49,12 @@ m_obj= main_object(game.width*0.5,game.height*0.5,0.1*game.width,color.red) #kh�
 
 #thuộc tính địch 
 class object_c:
-    def __init__(self,center,w,s,di):# vị trí, bán kính, tốc độ, tâm hướng di chuyển tới
+    def __init__(self,center,w,s,di,data):# vị trí, bán kính, tốc độ, tâm hướng di chuyển tới
         self.w= w 
         self.center= center
         self.color = (random.randint(0,255),random.randint(0,255),random.randint(0,255)) #bộ ngầu nhiên màu sắc
         self.speed = s
+        self.data = data
 
         #hàm xác định độ dịch chuyển trục x,y {di..[0],di..[1]}
         #xác định vector hướng
@@ -66,7 +66,6 @@ class object_c:
         len = math.sqrt((l_x)**2+(l_y)**2)/s
         l_x /= len
         l_y /= len
-
         #thiết lập vector dịch chuyển 2D
         self.di= (l_x,l_y)
 
@@ -106,6 +105,10 @@ def center_spon():
     if di==3:
        return  (game.width-10,random.randint(0,game.height))
     return  (random.randint(0,game.width),game.height-10)
+
+def data_random():
+    return chr(random.randint(ord('a'),ord('w')))
+
 
 #xác định va chạm giữa cần bảo vệ và địch
 def when_touch_m (obj):
@@ -153,8 +156,8 @@ while True:
     #ví dụ khi kcach time >1000 thì spon và set time hiện tại làm mốc
     #còn nếu hỏi vid sao tui không dùng cách này thì do mình thích tìm hiểu cách mới hơn
     if pygame.time.get_ticks() -game.time > game.time_create_obj :
-        list_object.append( object_c(center_spon(), random.randint(game.width*0.05,game.width*0.07), 0.01*game.width , (m_obj.x,m_obj.y)) )
-        game.time_create_obj = random.randint(100,random.randint(1000,3000))
+        list_object.append( object_c(center_spon(), random.randint(game.width*0.05,game.width*0.07), 2 , (m_obj.x,m_obj.y),data_random()) )
+        game.time_create_obj = random.randint(1000,random.randint(2000,4000))
         game.time = pygame.time.get_ticks()
     # lấy tọa độ chuột
     game.mouse = pygame.mouse.get_pos()
@@ -168,7 +171,7 @@ while True:
                 game.play = True
                 print("pause")
             else:
-                game.delobj +=1
+                game.delobj.append(chr(event.key))
     #khởi tạo các đối tượng để in
     view.fill(game.color)    
     pygame.draw.circle(view,m_obj.color,(m_obj.x,m_obj.y),m_obj.radius)
@@ -178,16 +181,20 @@ while True:
     obj = len(list_object)
     while obj>0:
         obj-=1
-        ten =font.render(str(obj),True,color.black)
+        ten =font.render(list_object[obj].data,True,color.black)
         pygame.draw.circle(view,list_object[obj].color,list_object[obj].center,list_object[obj].w)
         list_object[obj].move()
         view.blit(ten,list_object[obj].center)
-        if game.delobj >0:
-            game.delobj -=1
-            game.diem +=1
-            del list_object[obj]
-        else if when_touch_m(list_object[obj]):
-            list_object.clear()
-            break
+        if game.delobj != []:
+            for data in game.delobj:
+                if data == list_object[obj].data:
+                    game.diem +=1
+                    del list_object[obj]
+                    break
+        else:
+            if when_touch_m(list_object[obj]):
+                list_object.clear()
+                break
+    game.delobj = []
     game.FPS.tick(game.num_FPS)
     pygame.display.update()
